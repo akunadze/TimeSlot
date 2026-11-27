@@ -29,16 +29,18 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // POST /api/auth/register
 router.post('/register', (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, fullName } = req.body;
   if (!username || !username.trim()) return res.status(400).json({ error: 'Username is required' });
   if (username.trim().length > 50) return res.status(400).json({ error: 'Username must be 50 characters or fewer' });
   if (!password || password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  if (!fullName || !fullName.trim()) return res.status(400).json({ error: 'Full name is required' });
+  if (fullName.trim().length > 100) return res.status(400).json({ error: 'Full name must be 100 characters or fewer' });
 
   const hash = bcrypt.hashSync(password, 10);
   try {
     const { lastInsertRowid } = db().run(
-      'INSERT INTO users (username, password_hash) VALUES (?, ?)',
-      [sanitizeText(username), hash]
+      'INSERT INTO users (username, password_hash, full_name) VALUES (?, ?, ?)',
+      [sanitizeText(username), hash, sanitizeText(fullName)]
     );
     const user = db().get('SELECT * FROM users WHERE id = ?', [lastInsertRowid]);
     res.status(201).json({ token: makeToken(user), user: userResponse(user) });

@@ -33,6 +33,12 @@ export const api = {
   updateTool: (id, d)  => request('PUT',    `/tools/${id}`, d),
   deleteTool: (id)     => request('DELETE', `/tools/${id}`),
 
+  // Users (admin)
+  getUsers:       ()           => request('GET',    '/users'),
+  updateUser:     (id, data)   => request('PUT',    `/users/${id}`, data),
+  setUserPassword:(id, data)   => request('PUT',    `/users/${id}/password`, data),
+  deleteUser:     (id)         => request('DELETE', `/users/${id}`),
+
   // Reservations
   getReservations: (params = {}) => {
     const qs = new URLSearchParams(params).toString();

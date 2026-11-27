@@ -8,14 +8,20 @@
         <div v-if="error" class="alert alert-error">{{ error }}</div>
 
         <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input v-model="form.fullName" class="form-control" autocomplete="name" required autofocus placeholder="Jane Smith" />
+          <span class="form-error" v-if="submitted && !form.fullName.trim()">Full name is required</span>
+        </div>
+
+        <div class="form-group">
           <label class="form-label">Username</label>
-          <input v-model="form.username" class="form-control" autocomplete="username" required autofocus />
+          <input v-model="form.username" class="form-control" autocomplete="username" required />
         </div>
 
         <div class="form-group">
           <label class="form-label">Password</label>
           <input v-model="form.password" type="password" class="form-control" autocomplete="new-password" required />
-          <span class="form-error" v-if="submitted && form.password.length < 4">At least 4 characters</span>
+          <span class="form-error" v-if="submitted && form.password.length < 8">At least 8 characters</span>
         </div>
 
         <div class="form-group">
@@ -44,20 +50,25 @@ import { api } from '../api';
 import { auth } from '../auth';
 
 const router    = useRouter();
-const form      = ref({ username: '', password: '', confirm: '' });
+const form      = ref({ fullName: '', username: '', password: '', confirm: '' });
 const error     = ref('');
 const loading   = ref(false);
 const submitted = ref(false);
 
 async function submit() {
   submitted.value = true;
-  if (form.value.password.length < 4) return;
+  if (!form.value.fullName.trim()) return;
+  if (form.value.password.length < 8) return;
   if (form.value.password !== form.value.confirm) return;
 
   error.value   = '';
   loading.value = true;
   try {
-    const { token, user } = await api.register({ username: form.value.username, password: form.value.password });
+    const { token, user } = await api.register({
+      fullName: form.value.fullName,
+      username: form.value.username,
+      password: form.value.password
+    });
     auth.login(token, user);
     router.push('/');
   } catch (e) {

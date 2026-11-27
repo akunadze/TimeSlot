@@ -14,6 +14,9 @@ module.exports = {
         NODE_ENV:   'production',
         PORT:       '3000',
 
+        // Production origin for CORS — the URL users access the app from.
+        CORS_ORIGIN: 'https://timeslot.makerspace.ca',
+
         // Required: set to a long random string before deploying.
         // Generate one with: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
         JWT_SECRET: 'CHANGE_ME',

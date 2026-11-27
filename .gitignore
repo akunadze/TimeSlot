@@ -1,2 +1,7 @@
-/timeslot-deploy-2026-03-29-164003.zip
+/timeslot-deploy-*.zip
 /_stage
+node_modules/
+/package-lock.json
+*.db-shm
+*.db-wal
+*.db
