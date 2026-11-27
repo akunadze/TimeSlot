@@ -65,20 +65,18 @@ copy /y "%BACKEND%\package-lock.json" "%STAGE_BE%\" >nul 2>&1
 copy /y "%BACKEND%\routes\auth.js"         "%STAGE_BE%\routes\" >nul
 copy /y "%BACKEND%\routes\tools.js"        "%STAGE_BE%\routes\" >nul
 copy /y "%BACKEND%\routes\reservations.js" "%STAGE_BE%\routes\" >nul
+copy /y "%BACKEND%\routes\users.js"        "%STAGE_BE%\routes\" >nul
 
 copy /y "%BACKEND%\middleware\auth.js"     "%STAGE_BE%\middleware\" >nul
 
 copy /y "%BACKEND%\utils\sanitize.js"      "%STAGE_BE%\utils\" >nul
 copy /y "%BACKEND%\ecosystem.config.js"   "%STAGE_BE%\" >nul
 
-:: ── 4. Install production dependencies into staging ──────────
+:: ── 4. (skipped) node_modules are NOT bundled — better-sqlite3 ──
+::     contains a native binary that must be compiled on the target
+::     OS. Run "npm install --omit=dev" on the server after upload.
 echo [3/5] Backend files staged.
-echo.
-echo [4/5] Installing production dependencies...
-cd /d "%STAGE_BE%"
-call npm install --omit=dev --silent
-if errorlevel 1 ( echo ERROR: npm install --omit=dev failed & exit /b 1 )
-echo [4/5] Production dependencies installed.
+echo [4/5] Skipping node_modules (native deps must be built on server).
 
 :: ── 5. Stage frontend dist ───────────────────────────────────
 echo.
@@ -106,12 +104,15 @@ echo.
 echo  Deploy instructions:
 echo    1. Upload %ZIPNAME% to your server
 echo    2. Unzip — produces backend\ and frontend\ folders
-echo    3. Edit backend\ecosystem.config.js:
+echo    3. On the server:
+echo         sudo apt install -y build-essential python3   (Ubuntu/Debian)
+echo         cd backend ^&^& npm install --omit=dev
+echo    4. Edit backend/ecosystem.config.js:
 echo         - Set JWT_SECRET to a long random string
 echo         - Set PORT if not using 3000
 echo         - Fill in SMTP_* values if email is needed
-echo    4. cd backend ^&^& pm2 start ecosystem.config.js --env production
-echo       (plain node: node server.js)
+echo    5. pm2 start backend/ecosystem.config.js --env production
+echo         pm2 save ^&^& pm2 startup
 echo ============================================================
 echo.
 

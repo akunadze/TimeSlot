@@ -17,8 +17,33 @@ app.use(helmet({
     }
   }
 }));
-app.use(cors());
+
+const DEV_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const PROD_ORIGIN  = process.env.CORS_ORIGIN || null;
+const allowedOrigins = new Set([...DEV_ORIGINS, ...(PROD_ORIGIN ? [PROD_ORIGIN] : [])]);
+
+// Same-origin requests (the frontend served by this server, incl. behind a reverse
+// proxy like Caddy that forwards the Host header) are always allowed.
+function isSameOrigin(origin, req) {
+  try {
+    return new URL(origin).host === req.headers.host;
+  } catch {
+    return false;
+  }
+}
+
+app.use(cors((req, cb) => {
+  const origin = req.headers.origin;
+  // Allow requests with no origin (curl, Postman), same-origin, and configured origins
+  if (!origin || isSameOrigin(origin, req) || allowedOrigins.has(origin)) {
+    return cb(null, { origin: true });
+  }
+  cb(new Error(`CORS: origin not allowed — ${origin}`));
+}));
+
 app.use(express.json());
+// Express 5 leaves req.body undefined when no body is sent; keep route destructuring safe
+app.use((req, _res, next) => { req.body ??= {}; next(); });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -31,6 +56,7 @@ const authLimiter = rateLimit({
 // Initialise DB before handling requests
 init().then(() => {
   app.use('/api/auth', authLimiter, require('./routes/auth'));
+  app.use('/api/users', require('./routes/users'));
   app.use('/api/tools', require('./routes/tools'));
   app.use('/api/reservations', require('./routes/reservations'));
 
@@ -44,7 +70,7 @@ init().then(() => {
   if (fs.existsSync(dist)) {
     app.use(express.static(dist));
     // SPA fallback — all non-API routes return index.html
-    app.get('*', (_req, res) => {
+    app.get('/{*splat}', (_req, res) => {
       res.sendFile(path.join(dist, 'index.html'));
     });
   }

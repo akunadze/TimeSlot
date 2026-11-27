@@ -6,6 +6,7 @@
         <router-link to="/" class="nav-link">Home</router-link>
         <router-link to="/tools" class="nav-link">Tools</router-link>
         <router-link to="/reservations" class="nav-link">Reservations</router-link>
+        <router-link v-if="auth.isAdmin" to="/users" class="nav-link">Users</router-link>
       </div>
       <div class="navbar-user" v-if="auth.isLoggedIn">
         <router-link to="/profile" class="user-chip">

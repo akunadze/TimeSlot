@@ -7,6 +7,7 @@ import ReservationsView from '../views/ReservationsView.vue';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import ProfileView from '../views/ProfileView.vue';
+import UsersView from '../views/UsersView.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -17,7 +18,8 @@ const router = createRouter({
     { path: '/',         component: HomeView },
     { path: '/tools',    component: ToolsView },
     { path: '/tools/:id', component: ToolDetailView },
-    { path: '/reservations', component: ReservationsView }
+    { path: '/reservations', component: ReservationsView },
+    { path: '/users',    component: UsersView,    meta: { adminOnly: true } }
   ]
 });
 
@@ -26,6 +28,9 @@ router.beforeEach((to) => {
     return { path: '/login', query: { redirect: to.fullPath } };
   }
   if (to.meta.public && auth.isLoggedIn) {
+    return { path: '/' };
+  }
+  if (to.meta.adminOnly && !auth.isAdmin) {
     return { path: '/' };
   }
 });
